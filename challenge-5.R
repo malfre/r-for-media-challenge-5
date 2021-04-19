@@ -25,3 +25,35 @@
 
 # 6. Beschreibe mit einem Satz, was dir bei der Interpretation der Daten auffällt und committe diesen mit deinen Ergebnissen
 
+# load libraries
+library(dplyr)
+library(readxl)
+library(ggplot2)
+library(janitor)
+
+# load and clean data 
+stadtteile <- read_xlsx("data/StadtteilprofileBerichtsjahr2017.xlsx", skip = 3) %>% janitor:: clean_names()
+
+# also cleaning: define "durchschnittlicher_immobilienpreis_fur_eine_eigentums_wohnung_in_eur_m2" as numeric (important, as it will be the color argument in the plot)
+stadtteile <- stadtteile %>% 
+  mutate(durchschnittlicher_immobilienpreis_fur_eine_eigentums_wohnung_in_eur_m2 = as.numeric(durchschnittlicher_immobilienpreis_fur_eine_eigentums_wohnung_in_eur_m2))
+
+# select and rename data
+plot <- stadtteile %>% 
+  select(x1, 
+         gesamtbetrag_der_einkunfte_je_steuerpflichtigen_lohn_und_einkommen_steuer_im_jahr, 
+         durchschnittliche_wohnungsgrosse_in_m2, 
+         durchschnittlicher_immobilienpreis_fur_eine_eigentums_wohnung_in_eur_m2) %>%
+  rename(stadtteil = x1,
+         einkommen = gesamtbetrag_der_einkunfte_je_steuerpflichtigen_lohn_und_einkommen_steuer_im_jahr,
+         wohnungsgroesse = durchschnittliche_wohnungsgrosse_in_m2,
+         kaufpreis_m2 = durchschnittlicher_immobilienpreis_fur_eine_eigentums_wohnung_in_eur_m2)
+
+# create dot-plot
+ggplot(data = plot, aes(x = einkommen, y = wohnungsgroesse, color = kaufpreis_m2)) +
+  geom_point() +
+  ggtitle("Verhältnis des Einkommens und der Wohnungsgröße in Hamburg") +
+  xlab("Einkommen") +
+  ylab("Wohnungsgröße in m²") +
+  labs(color = "Kaufpreis pro m²")
+
